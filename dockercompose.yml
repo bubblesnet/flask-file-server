@@ -1,0 +1,19 @@
+version: "0.1.1"
+
+services:
+  flask_file_server-block:
+    environment:
+      ## Required system variables ##
+      DBUS_SYSTEM_BUS_ADDRESS: "unix:path=/host/run/dbus/system_bus_socket"
+    build:
+      context: .
+      dockerfile: Dockerfile.template
+    ports:
+      - "8000:80"
+    restart: always
+    volumes:
+      - 'resin-data:/data'
+    labels:
+      io.balena.features.dbus: "1"
+    cap_add:
+    privileged: true

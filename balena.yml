@@ -1,0 +1,21 @@
+name: flask_file_server-block
+type: sw.block
+description: >-
+  A block that lets you puts a file-server UI on a shared directory in balena.
+post-provisioning:
+assets:
+  repository:
+    type: blob.asset
+    data:
+      url: 'https://github.com/bubblesnet/flask_file_server-block'
+  logo:
+    type: blob.asset
+    data:
+      url: >-
+        https://raw.githubusercontent.com/bubblesnet/flask_file_server-block/main/block_logo.png
+data:
+  applicationEnvironmentVariables:
+  defaultDeviceType: raspberry-pi
+  supportedDeviceTypes:
+    - raspberrypi3
+version: 0.1.1
