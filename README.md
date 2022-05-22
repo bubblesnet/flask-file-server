@@ -5,7 +5,6 @@ It's only modified to add the mechanics required to be a "block" in BalenaHub.
 The intent of the block is to allow download of files found in the directory mounted as a 
 share between containers in Balena.
 
-
 Below is the original README.md
 ------------------------------------------------------------------------------------
 
