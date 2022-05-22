@@ -5,6 +5,12 @@ It's only modified to add the mechanics required to be a "block" in BalenaHub.
 The intent of the block is to allow download of files found in the directory mounted as a 
 share between containers in Balena.
 
+Env vars:
+FS_BIND = Param for bind address, default 0.0.0.0  
+FS_PORT = Param for server port, default 8000  
+FS_PATH = Param for serve path, default /tmp  
+FS_KEY = Param for authentication key as base64 encoded username:password, default none  
+
 Below is the original README.md
 ------------------------------------------------------------------------------------
 
