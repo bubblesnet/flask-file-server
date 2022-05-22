@@ -1,6 +1,8 @@
 from flask import Flask, make_response, request, session, render_template, send_file, Response
 from flask.views import MethodView
-from werkzeug import secure_filename
+# from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
+from werkzeug.datastructures import FileStorage
 from datetime import datetime
 import humanize
 import os
@@ -15,19 +17,30 @@ app = Flask(__name__, static_url_path='/assets', static_folder='assets')
 root = os.path.normpath("/tmp")
 key = ""
 
-ignored = ['.bzr', '$RECYCLE.BIN', '.DAV', '.DS_Store', '.git', '.hg', '.htaccess', '.htpasswd', '.Spotlight-V100', '.svn', '__MACOSX', 'ehthumbs.db', 'robots.txt', 'Thumbs.db', 'thumbs.tps']
-datatypes = {'audio': 'm4a,mp3,oga,ogg,webma,wav', 'archive': '7z,zip,rar,gz,tar', 'image': 'gif,ico,jpe,jpeg,jpg,png,svg,webp', 'pdf': 'pdf', 'quicktime': '3g2,3gp,3gp2,3gpp,mov,qt', 'source': 'atom,bat,bash,c,cmd,coffee,css,hml,js,json,java,less,markdown,md,php,pl,py,rb,rss,sass,scpt,swift,scss,sh,xml,yml,plist', 'text': 'txt', 'video': 'mp4,m4v,ogv,webm', 'website': 'htm,html,mhtm,mhtml,xhtm,xhtml'}
-icontypes = {'fa-music': 'm4a,mp3,oga,ogg,webma,wav', 'fa-archive': '7z,zip,rar,gz,tar', 'fa-picture-o': 'gif,ico,jpe,jpeg,jpg,png,svg,webp', 'fa-file-text': 'pdf', 'fa-film': '3g2,3gp,3gp2,3gpp,mov,qt', 'fa-code': 'atom,plist,bat,bash,c,cmd,coffee,css,hml,js,json,java,less,markdown,md,php,pl,py,rb,rss,sass,scpt,swift,scss,sh,xml,yml', 'fa-file-text-o': 'txt', 'fa-film': 'mp4,m4v,ogv,webm', 'fa-globe': 'htm,html,mhtm,mhtml,xhtm,xhtml'}
+ignored = ['.bzr', '$RECYCLE.BIN', '.DAV', '.DS_Store', '.git', '.hg', '.htaccess', '.htpasswd', '.Spotlight-V100',
+           '.svn', '__MACOSX', 'ehthumbs.db', 'robots.txt', 'Thumbs.db', 'thumbs.tps']
+datatypes = {'audio': 'm4a,mp3,oga,ogg,webma,wav', 'archive': '7z,zip,rar,gz,tar',
+             'image': 'gif,ico,jpe,jpeg,jpg,png,svg,webp', 'pdf': 'pdf', 'quicktime': '3g2,3gp,3gp2,3gpp,mov,qt',
+             'source': 'atom,bat,bash,c,cmd,coffee,css,hml,js,json,java,less,markdown,md,php,pl,py,rb,rss,sass,scpt,swift,scss,sh,xml,yml,plist',
+             'text': 'txt', 'video': 'mp4,m4v,ogv,webm', 'website': 'htm,html,mhtm,mhtml,xhtm,xhtml'}
+icontypes = {'fa-music': 'm4a,mp3,oga,ogg,webma,wav', 'fa-archive': '7z,zip,rar,gz,tar',
+             'fa-picture-o': 'gif,ico,jpe,jpeg,jpg,png,svg,webp', 'fa-file-text': 'pdf',
+             'fa-film': '3g2,3gp,3gp2,3gpp,mov,qt',
+             'fa-code': 'atom,plist,bat,bash,c,cmd,coffee,css,hml,js,json,java,less,markdown,md,php,pl,py,rb,rss,sass,scpt,swift,scss,sh,xml,yml',
+             'fa-file-text-o': 'txt', 'fa-film': 'mp4,m4v,ogv,webm', 'fa-globe': 'htm,html,mhtm,mhtml,xhtm,xhtml'}
+
 
 @app.template_filter('size_fmt')
 def size_fmt(size):
     return humanize.naturalsize(size)
+
 
 @app.template_filter('time_fmt')
 def time_desc(timestamp):
     mdate = datetime.fromtimestamp(timestamp)
     str = mdate.strftime('%Y-%m-%d %H:%M:%S')
     return str
+
 
 @app.template_filter('data_fmt')
 def data_fmt(filename):
@@ -37,6 +50,7 @@ def data_fmt(filename):
             t = type
     return t
 
+
 @app.template_filter('icon_fmt')
 def icon_fmt(filename):
     i = 'fa-file-o'
@@ -45,10 +59,12 @@ def icon_fmt(filename):
             i = icon
     return i
 
+
 @app.template_filter('humanize')
 def time_humanize(timestamp):
     mdate = datetime.utcfromtimestamp(timestamp)
     return humanize.naturaltime(mdate)
+
 
 def get_type(mode):
     if stat.S_ISDIR(mode) or stat.S_ISLNK(mode):
@@ -56,6 +72,7 @@ def get_type(mode):
     else:
         type = 'file'
     return type
+
 
 def partial_response(path, start, end=None):
     file_size = os.path.getsize(path)
@@ -86,6 +103,7 @@ def partial_response(path, start, end=None):
     )
     return response
 
+
 def get_range(request):
     range = request.headers.get('Range')
     m = re.match('bytes=(?P<start>\d+)-(?P<end>\d+)?', range)
@@ -98,6 +116,7 @@ def get_range(request):
         return start, end
     else:
         return 0, None
+
 
 class PathView(MethodView):
     def get(self, p=''):
@@ -134,11 +153,14 @@ class PathView(MethodView):
                 res = partial_response(path, start, end)
             else:
                 res = send_file(path)
-                res.headers.add('Content-Disposition', 'attachment')
+                if ".sh" in path or ".log" in path or ".txt" in path:
+                    res.headers.add("Content-Disposition", "inline")
+                else:
+                    res.headers.add('Content-Disposition', 'attachment')
         else:
             res = make_response('Not found', 404)
         return res
-    
+
     def put(self, p=''):
         if request.cookies.get('auth_cookie') == key:
             path = os.path.join(root, p)
@@ -163,7 +185,7 @@ class PathView(MethodView):
             res = make_response(json.JSONEncoder().encode(info), 201)
             res.headers.add('Content-type', 'application/json')
         else:
-            info = {} 
+            info = {}
             info['status'] = 'error'
             info['msg'] = 'Authentication failed'
             res = make_response(json.JSONEncoder().encode(info), 401)
@@ -194,13 +216,13 @@ class PathView(MethodView):
             res = make_response(json.JSONEncoder().encode(info), 200)
             res.headers.add('Content-type', 'application/json')
         else:
-            info = {} 
+            info = {}
             info['status'] = 'error'
             info['msg'] = 'Authentication failed'
             res = make_response(json.JSONEncoder().encode(info), 401)
             res.headers.add('Content-type', 'application/json')
         return res
-    
+
     def delete(self, p=''):
         if request.cookies.get('auth_cookie') == key:
             path = os.path.join(root, p)
@@ -231,6 +253,7 @@ class PathView(MethodView):
             res = make_response(json.JSONEncoder().encode(info), 401)
             res.headers.add('Content-type', 'application/json')
         return res
+
 
 path_view = PathView.as_view('path_view')
 app.add_url_rule('/', view_func=path_view)
