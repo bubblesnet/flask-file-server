@@ -1,6 +1,5 @@
 from flask import Flask, make_response, request, session, render_template, send_file, Response
 from flask.views import MethodView
-# from werkzeug import secure_filename
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 from datetime import datetime
