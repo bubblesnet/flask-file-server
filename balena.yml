@@ -15,7 +15,8 @@ assets:
         https://raw.githubusercontent.com/bubblesnet/flask_file_server-block/main/block_logo.png
 data:
   applicationEnvironmentVariables:
-  defaultDeviceType: raspberry-pi
+  defaultDeviceType: raspberrypi3
   supportedDeviceTypes:
     - raspberrypi3
+    - raspberrypi4-64
 version: 0.1.1
